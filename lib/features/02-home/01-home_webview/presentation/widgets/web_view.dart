@@ -203,10 +203,7 @@ class _WebViewPageState extends State<WebViewPage> {
   bool isLoading = false;
 
   Future<void> downloadVideo() async {
-    isLoading = true ;
-    setState(() {
 
-    });
 
     print(urlNew);
     final yt = YoutubeExplode();
@@ -227,37 +224,50 @@ class _WebViewPageState extends State<WebViewPage> {
       var status = await Permission.storage.status;
       if (!status.isGranted) {
         await Permission.storage.request();
+
+
+        return;
+      } else {
+        isLoading = true;
+        setState(() {
+
+        });
+        var directory = await DownloadsPathProvider.downloadsDirectory;
+        String path = "${directory!.path}/" +
+            "tube" + urlNew
+            .split("=")
+            .last
+            .split("&")
+            .first
+            .replaceAll(new RegExp(r'[^\w\s]+'), '')
+            .split(" ")
+            .join("") +
+            ".mp4";
+
+
+        var file = File(path);
+        var fileStream = file.openWrite();
+
+
+        // Pipe all the content of the stream into the file.
+        await stream.pipe(fileStream);
+
+
+        // Close the file.
+        await fileStream.flush();
+        await fileStream.close();
+
+
+        isLoading = false;
+
+        setState(() {
+          isLoading = false;
+        });
+        await showSnackBar("تم تنزيل الملف بنجاح", 3, context);
+
       }
-      var directory = await DownloadsPathProvider.downloadsDirectory;
-     String path = "${directory!.path}/" +
-    "tube"+urlNew.split("=").last.split("&").first
-        .replaceAll(new RegExp(r'[^\w\s]+'), '')
-        .split(" ")
-        .join("") +
-    ".mp4";
 
-
-      var file = File(path);
-      var fileStream = file.openWrite();
-
-
-      // Pipe all the content of the stream into the file.
-      await stream.pipe(fileStream);
-
-
-      // Close the file.
-      await fileStream.flush();
-      await fileStream.close();
-
+      yt.close();
     }
-    isLoading = false ;
-
-    setState(()  {
-      isLoading = false ;
-    });
-    await showSnackBar("تم تنزيل الملف بنجاح", 3, context);
-
-    yt.close();
-
   }
 }
