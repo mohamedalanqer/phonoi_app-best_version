@@ -252,9 +252,11 @@ class _WebViewPageState extends State<WebViewPage> {
     }
     isLoading = false ;
 
-    setState(() async {
-      await showSnackBar("تم تنزيل الملف بنجاح", 3, context);
+    setState(()  {
+      isLoading = false ;
     });
+    await showSnackBar("تم تنزيل الملف بنجاح", 3, context);
+
     yt.close();
 
   }
