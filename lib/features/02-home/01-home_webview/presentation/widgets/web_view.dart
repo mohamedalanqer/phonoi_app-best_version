@@ -203,35 +203,41 @@ class _WebViewPageState extends State<WebViewPage> {
   bool isLoading = false;
 
   Future<void> downloadVideo() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      await Permission.storage.request();
+      return;
+    } else {
+      print("statas# " + 4.toString());
+
+      isLoading = true;
+      setState(() {
+
+      });
+      print(urlNew);
+      final yt = YoutubeExplode();
+      final manifest = await yt.videos.streamsClient.getManifest(urlNew
+          .split("=")
+          .last
+          .split("&")
+          .first);
+
+      print(manifest);
+
+      // Get highest quality muxed stream
+      var streamInfo = manifest.muxed.withHighestBitrate();
+
+      if (streamInfo != null) {
+        // Get the actual stream
+        print("statas# " + 5.toString());
+
+        var stream = yt.videos.streamsClient.get(streamInfo);
+
+        // Open a file for writing.
+        print("statas# " + stream.toString());
 
 
-    print(urlNew);
-    final yt = YoutubeExplode();
-    final manifest = await yt.videos.streamsClient.getManifest(urlNew.split("=").last.split("&").first);
-
-    print(manifest);
-
-    // Get highest quality muxed stream
-    var streamInfo = manifest.muxed.withHighestBitrate();
-
-    if (streamInfo != null) {
-      // Get the actual stream
-
-      var stream = yt.videos.streamsClient.get(streamInfo);
-
-      // Open a file for writing.
-
-      var status = await Permission.storage.status;
-      if (!status.isGranted) {
-        await Permission.storage.request();
-
-
-        return;
-      } else {
-        isLoading = true;
-        setState(() {
-
-        });
+        print("statas# " + 6.toString());
         var directory = await DownloadsPathProvider.downloadsDirectory;
         String path = "${directory!.path}/" +
             "tube" + urlNew
@@ -243,20 +249,30 @@ class _WebViewPageState extends State<WebViewPage> {
             .split(" ")
             .join("") +
             ".mp4";
+        print("statas# " + path.toString());
+        print("statas# " + 7.toString());
 
 
         var file = File(path);
+        print("statas# " + 77.toString());
         var fileStream = file.openWrite();
 
+        print("statas# " + 777.toString());
+        print("statas# " + fileStream.toString());
 
         // Pipe all the content of the stream into the file.
+
+
         await stream.pipe(fileStream);
+
+        print("statas# " + 88.toString());
 
 
         // Close the file.
         await fileStream.flush();
         await fileStream.close();
 
+        print("statas# " + 9.toString());
 
         isLoading = false;
 
@@ -264,10 +280,15 @@ class _WebViewPageState extends State<WebViewPage> {
           isLoading = false;
         });
         await showSnackBar("تم تنزيل الملف بنجاح", 3, context);
+        yt.close();
+      }else{
+        isLoading = true;
+        await showSnackBar("فشل في تحميل الملف", 3, context);
+        setState(() {
 
+        });
       }
 
-      yt.close();
     }
   }
 }
